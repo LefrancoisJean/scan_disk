@@ -1,0 +1,26 @@
+{% extends "grap-core.j2" %}
+{% from 'grap-standard.macro.j2' import StdTable, StdBar %}
+
+
+{% block contenu %}
+
+    {%- for key,value in reports.items() %}
+        {%- if value.title is defined -%}
+            {{ StdTable(value) }}
+        {% else %}
+            {% for k, val in value.items() %}
+                {{ StdTable(val) }}
+            {% endfor %}
+        {%- endif %}
+    {%- endfor %}
+
+
+{% endblock contenu %}
+
+
+{# {% block graphique %}
+
+    {{ StdBar(reports.idf_list, 'idf_list') }}
+
+{% endblock graphique %} #}
+

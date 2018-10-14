@@ -1,0 +1,1 @@
+The templates use in the application

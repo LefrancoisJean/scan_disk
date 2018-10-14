@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Bar Chart</title>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" href="css/styles.css">
+        
+    </head>
+    <body>
+    
+        <h1>{{ metadata.title }}</h1>
+        <span>Cr&eacute;&eacute; le {{ metadata.exec_infos.created }}<span>
+        
+        {% block contenu %}
+        {% endblock contenu %}
+        
+        <script src="js/Chart.bundle.js"></script>
+        <script src="js/utils.js"></script>
+        <script src="js/sorttable.js"></script>
+        <script>
+           var color = Chart.helpers.color;
+           window.onload = function() {
+           {% block graphique %}
+           {% endblock graphique %}   
+           };
+        </script>
+    </body>
+</html>

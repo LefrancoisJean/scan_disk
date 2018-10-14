@@ -1,0 +1,66 @@
+{% macro StdTable(rep) %}
+<h2>{{ rep.title }}</h2>
+<table  class="table table-bordered table-hover sortable">
+<thead>
+<tr>
+{% for label in rep.labels -%}
+    <th>{{ label }}</th>
+{%- endfor %}
+</tr>
+</thead>
+<tbody>
+{% for row in rep.data -%}
+<tr>
+   {% for field in row -%}
+      <td>{{ field }}</td>
+   {%- endfor %}
+</tr>
+{%- endfor %}
+</tbody>
+</table>
+{% endmacro %}
+
+
+
+{% macro StdBar(rep,div) %}
+            var iDiv = document.createElement('div');
+            iDiv.id = '{{ div }}';
+            document.getElementsByTagName('body')[0].appendChild(iDiv);
+            var iCanvas = document.createElement('canvas');
+            iCanvas.id = '{{ div }}canvas';
+            iDiv.appendChild(iCanvas);
+
+            var ctx = document.getElementById("{{ div }}canvas").getContext("2d");
+            window.myBar = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [{% for row in rep.data %} "{{ row[0] }}",  {% endfor %}],
+                    datasets: [{
+                        label: '{{ rep.labels[1] }}',
+                        backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
+                        borderColor: window.chartColors.blue,
+                        borderWidth: 1,
+                        data: [
+                           {% for row in rep.data %} {{ row[1] }},  {% endfor %}
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: '{{ rep.title }}'
+                    },
+                    scales: {
+                       yAxes: [{
+                          ticks: {
+                             beginAtZero: true
+                          }
+                       }]
+                    }
+                }
+            });
+{% endmacro %}
