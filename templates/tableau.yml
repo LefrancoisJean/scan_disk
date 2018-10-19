@@ -1,36 +1,51 @@
 head: |
   <!doctype html>
-    <html>
+    <html lang="en">
       <head>
-        <title>Bar Chart</title>
+        <title>{{ name }}</title>
         <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <style>
-           body {
-             font-family: Verdana, Helvetica, sans-serif;
-             font-size: 12px;
-             margin: auto;}
-           h1, h2 {
-             text-align: center;}
-           table {
-             border-collapse: collapse;
-             background: #DCE6F1;
-             width: 90%;}
-           tbody tr:nth-of-type(odd) {
-             background: #B8CCE4;}
-           thead th {
-             background: #4F81BD; 
-             color: #ffffff;
-             text-align: center;
-             font-weight: bold;}
-           tbody th {
-             width: 20%;
-           }
-           td, th {
-             padding: 6px;
-             border: 1px solid #ffffff;
-             text-align: left;}
-           tbody tr:hover {
-             background: #bbb;}
+          body {
+            font-family: Verdana, Helvetica, sans-serif;
+            font-size: 12px;
+            margin: auto;}
+          a {
+            color: black;
+            text-decoration: none; 
+          }
+          h5 {
+            margin-left: 7%;
+          }
+          h1, h2 {
+            text-align: center;}
+          table {
+            border-collapse: collapse;
+            background: #DCE6F1;
+            width: 90%;
+            margin-left: 5%}
+          tbody tr:nth-of-type(odd) {
+            background: #B8CCE4;}
+          thead th {
+            background: #4F81BD; 
+            color: #ffffff;
+            text-align: center;
+            font-weight: bold;}
+          tbody th {
+            width: 30%;
+            word-break: break-all;
+          }
+          td, th {
+            padding: 6px;
+            border: 1px solid #ffffff;
+            text-align: left;}
+          tbody tr:hover {
+            background: #bbb;}
+          hr {
+            width: 95%;
+            margin: 2%
+          }
         </style>
       </head>
       <body>
@@ -38,64 +53,56 @@ head: |
           <div>Analyse du repertoire : {{ descript }}<div>
 
 body: |
-  <h2>{{ name}}</h2>
-        <table class="sortable">
-          <thead>
-            <tr>
-            {% for title in key%}
-              <th>{{ title }}</th>
-            {% endfor %}
-            </tr>
-          </thead>
-        <tbody>
-        {% if repe.null is defined %}
+  {% macro TitleCol(name) %}
+    <thead>
+      <tr>
+        {% for title in key%}
+          <th>{{ title }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+  {% endmacro %}
+  {% macro BodyTable(report, name) %}
+    <tbody>
+      {% if report.null is defined %}
+        <th>
+          La liste est vide
+        </th>
+      {% else %}
+        {% for key, value in report.items() %}
           <tr>
-            <td>Pas de sous-répertoire</td>
-          </tr>
-        {% else %}
-          {% for key, value in repe.items() %}
-            <tr>
-              <th>
-                {{ key }}
-              </th>
-              {% for val in value.values() %}
-                <td>
-                  {{ val }}
-                </td>
-              {% endfor %}
-            </tr>
-          {% endfor %}
-        {% endif %}
-        </table>
-        <table class="sortable">
-          <thead>
-            <tr>
-            {% for title in key%}
-              <th>{{ title }}</th>
+            {% if name is defined %}
+            <th>
+              <a href="#{{ name }}/{{ key }}">{{ key }}</a>
+            </th>
+            {% else %}
+            <th>
+              {{ key }}
+            </th>
+            {% endif %}
+            {% for val in value.values() %}
+              <td>
+                {{ val }}
+              </td>
             {% endfor %}
-            </tr>
-          </thead>
-        <tbody>
-        {% if file.null is defined %}
-          <tr>
-            <th>Le répertoire est vide</th>
           </tr>
-        {% else %}
-          {% for key, value in file.items() %}
-            <tr>
-              <th>
-                {{ key }}
-              </th>
-              {% for val in value.values() %}
-                <td>
-                  {{ val }}
-                </td>
-              {% endfor %}
-            </tr>
-          {% endfor %}
-        {% endif %}
-        </tbody>
-      </table>
+        {% endfor %}
+      {% endif %}
+    </tboby>
+  {% endmacro %}
+
+  <h2 id="{{ name }}">{{ name}}</h2>
+  <h5> Repertoires </h5>
+  <table class="sortable">
+    {{ TitleCol(key) }}
+    {{ BodyTable(repe, name)}}
+  </table>
+  <h5> fichiers </h5>
+  <table class="sortable">
+    {{ TitleCol(key) }}
+    {{ BodyTable (file) }}
+  </table>
+  <hr />
 
 footer: |
   <script>

@@ -6,11 +6,16 @@
 """
 
 import os
-import jinja2
+import sys
 import pathlib
 import datetime
-import json
+import scan_disk.utils as utils
 import scan_disk.scan_render as render
+
+project_path = pathlib.Path(__file__).resolve().parents[1]
+
+if sys.path[0] != str(project_path):
+    sys.path.insert(0, str(project_path))
 
 """Application permettant de scanner un répertoire et ses sous-répertoires.
 
@@ -46,15 +51,37 @@ class ScanDisk:
             :returns: An instance of the class.
             :rtype: ScanDisk
         """
-        return cls(directory=directory,
-                   output=output)
+        file_paths = {'logging': project_path / 'config' / 'logging.yml'}
+        print(project_path)
 
-    def __init__(self, directory, output):
+        # initialisation des loggings
+        utils.setup_logging(file_paths["logging"],
+                            project_path / "logs" / "scan_disk.log")
+        logger = utils.logging.getLogger("flogger")
+
+        return cls(directory=directory,
+                   output=output,
+                   logger=logger)
+
+    def __init__(self, directory, output, logger):
         """
             Constructor
         """
         self.directory = directory
         self.output = output
+        self.logger = logger
+
+        self.logger.info('********** Initialisation du programme **********')
+        self.logger.info('******* Fin d\'initialisation du programme *******')
+
+        # Set KO exit reply text
+        self.ko_reply_text = 'Scan_disk a été brusquement interrompu !\n \
+                                           ._//(`O`)\_.'
+
+        # Set OK exit reply text
+        self.ok_reply_text = 'Scan_disk a correctement écrit l\'ensemble \
+        des fichiers demandés.\n\
+        A bientôt ...\n!°\--(^_^)--/°!'
 
     def read_directory(self, name):
         result = {}
@@ -62,17 +89,24 @@ class ScanDisk:
             if name.is_dir():
                 file_list = os.walk(name)
                 for dirpath, dirname, filename in file_list:
+                    self.logger.info(f'Lecture du repertoire {dirpath}')
+                    self.logger.info('Lecture des sous-répertoires')
                     sous_rep = self.search_data(dirname, dirpath)
+                    self.logger.info('Lecture des fichiers')
                     fichier = self.search_data(filename, dirpath)
+                    self.logger.info('Construction du dictionnaire')
                     repe = Repertoire(dirpath, sous_rep, fichier)
                     result[dirpath] = repe.__dict__
             else:
                 raise NotADirectoryError
         except NotADirectoryError:
-            result['error'] = 'The name you enter is not a directory'
+            self.logger.error(f'{name} n\'est pas un répertoire valide')
+            result[str(name)] = 'The name you enter is not a directory'
         except Exception as error:
-            result['error'] = error
+            self.logger.error(f'Une erreur {error} est survenue')
+            result[str(name)] = error
         finally:
+            self.logger.info('Fin de l\'analyse du répertoire')
             return result
 
     def search_data(self, walk_name, rep):
@@ -83,6 +117,7 @@ class ScanDisk:
                     chemin = pathlib.Path(f'{rep}/{name}')
                     fichier[name] = self.affiche_stats(chemin)
         except IndexError as error:
+            self.logger.info('La liste est vide')
             fichier['null'] = None
         return fichier
 
@@ -97,13 +132,18 @@ class ScanDisk:
             result['dev'] = str(stats.st_dev)
             result['uid'] = str(stats.st_uid)
             result['gid'] = str(stats.st_gid)
-            result['size'] = str(stats.st_size)
+            size = str(stats.st_size//1024) + ' Ko' if stats.st_size > 1024 else str(stats.st_size) + ' o'
+            result['size'] = size
             result['acces'] = self.format_time(int(stats.st_atime))
             result['modif'] = self.format_time(int(stats.st_mtime))
             result['create'] = self.format_time(int(stats.st_ctime))
         except FileExistsError as error:
+            self.logger.error(f'Le fichier {filename} n\'existe pas' +
+                              f'L\'erreur {error} a été générée')
             result['error'] = error
         except FileNotFoundError as error:
+            self.logger.error(f'Le fichier {filename} n\'a pas été trouvé' +
+                              f'L\'erreur {error} a été générée')
             result['error'] = error
         return result
 
@@ -113,10 +153,13 @@ class ScanDisk:
             date = datetime.datetime.fromtimestamp(time)
             formatted_date = date.isoformat(sep=' ')
         except TypeError as error:
+            self.logger.error(error)
             formatted_date = error
         except ValueError as error:
+            self.logger.error(error)
             formatted_date = error
         except Exception as error:
+            self.logger.error(error)
             formatted_date = error
         finally:
             return formatted_date
@@ -152,8 +195,19 @@ class ScanDisk:
         return ftype, droit
 
     def run(self):
-        scan_result = render.ScanRender(self.read_directory(self.directory),
-                                        self.directory, self.output)
-        error_code = scan_result.render_html()
-        if error_code == 200:
-            print('Opération terminée')
+        self.logger.info(f'Analyse du répertoire {self.directory}')
+        scan = self.read_directory(self.directory)
+        if isinstance(scan[str(self.directory)], str):
+            self.logger.info(self.ko_reply_text)
+            exit(1)
+        self.logger.info('Fin analyse du répertoire')
+        self.logger.info('Début du rendu html')
+        scan_result = render.ScanRender(scan,
+                                        self.directory,
+                                        self.output)
+        error_code, error_message = scan_result.render_html()
+        self.logger.info('Fin du rendu html')
+        if error_code != 200:
+            self.logger.error(error_message)
+        else:
+            self.logger.info(self.ok_reply_text)

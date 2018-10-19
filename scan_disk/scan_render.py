@@ -16,6 +16,7 @@ import jinja2
 import yaml
 # import copy
 # import csv
+import scan_disk.utils as utils
 
 """
     La génération du rapport se fera en fonction
@@ -51,6 +52,7 @@ class ScanRender:
             self.output = output
         else:
             self.output = str(self.directory)[1:].split('/')[-1]
+            # self.output = 'test'
         self.project_path = pathlib.Path(__file__).resolve().parents[1]
 
         # Set KO exit reply text
@@ -349,71 +351,35 @@ class ScanRender:
             self.logger.error("[O] {}".format(error_message))
 
         return error_code"""
+        error_code, error_message = 200, None
         result = ''
         tableau = self.project_path / 'templates' / 'tableau.yml'
-        tableau_template = yaml_to_dict(tableau)
+        tableau_template = utils.yaml_to_dict(tableau)
 
-        result += render_templates(tableau_template['head'],
-                                   name=self.output,
-                                   descript=str(self.directory))
+        try:
+            result += utils.render_templates(tableau_template['head'],
+                                             name=self.output,
+                                             descript=str(self.directory))
 
-        for value in self.scan_result.values():
-            value['key'] = [
-                'nom', 'type', 'droits', 'inode', 'dev', ' uid', 'gid',
-                'size', 'acces', 'modif', 'create']
-            result += render_templates(tableau_template['body'],
-                                       **value)
+            for value in self.scan_result.values():
+                value['key'] = [
+                    'nom', 'type', 'droits', 'inode', 'dev', ' uid', 'gid',
+                    'size', 'acces', 'modif', 'create']
+                result += utils.render_templates(tableau_template['body'],
+                                                 **value)
+                result += tableau_template['footer']
 
-        result += tableau_template['footer']
-        with open(self.project_path / 'html' / (self.output+'.html'),
-                  'w', encoding="utf-8") as f:
-            f.write(result)
-
-        return 200
-
-
-def yaml_to_dict(file_path):
-    """
-        Loads YAML data from file.
-
-        :param file_path: The path of the YAML file.
-        :type file_path: str or pathlib.PurePath
-        :returns: The loaded YAML data.
-        :rtype: dict.
-    """
-    with open(file_path, encoding="utf-8") as file:
-            loaded_yaml = yaml.load(file.read())
-
-    return loaded_yaml
-
-
-def render_templates(tmpl, template_path="templates/", **kwargs):
-    """
-        Renders a Jinja template.
-        :param tmpl: The Jinja template or the path of the file holding it.
-        :type tmpl: str.
-        :param kwargs: The variables of the Jinja template.
-        :type tmpl: dict.
-        :returns: The rendered Jinja template.
-        :rtype: str.
-    """
-
-    if tmpl and tmpl.startswith("@"):
-        template_name = tmpl[1:]
-        environment = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(str(template_path)))
-        template = environment.get_template(template_name)
-    else:
-        template = jinja2.Template(tmpl)
-
-    result = template.render(**kwargs)
-
-    return result
-
-
-"""
-if __name__ == '__main__':
-    liste = {'/home/jean/Documents/python/test2': {'name': '/home/jean/Documents/python/test2', 'repe': {'null': 'None'}, 'file': {'nbr_rationnel.py': {'type': 'File ', 'droits': 'rw- rw- r-- ', 'inode': '792670', 'dev': '2054', 'uid': '1000', 'gid': '1000', 'size': '510', 'acces': '2018-10-08 07:46:30', 'modif': '2018-10-08 07:46:30', 'create': '2018-10-08 07:46:30'}, 'essai_jinja.py': {'type': 'File ', 'droits': 'rw- rw- r-- ', 'inode': '791008', 'dev': '2054', 'uid': '1000', 'gid': '1000', 'size': '146', 'acces': '2018-10-08 07:33:53', 'modif': '2018-10-05 18:15:46', 'create': '2018-10-05 18:15:46'}}}}
-    scan = ScanRender(liste)
-    scan.render_html()
-"""
+                with open(self.project_path / 'html' / (self.output+'.html'),
+                          'w', encoding="utf-8") as f:
+                    f.write(result)
+        except TypeError as error:
+            error_code = 1003
+            error_message = error
+        except IOError as error:
+            error_code = 1003
+            error_message = error
+        except Exception as error:
+            error_code = 1000
+            error_message = error
+        finally:
+            return error_code, error_message
