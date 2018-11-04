@@ -10,18 +10,20 @@ if sys.path[0] != str(project_path):
 
 import scan_disk as scan_disk
 
-message = """Application permettant de scanner un répertoire et ses sous-répertoires.
+message = '''Application permettant de scanner un répertoire et ses sous-répertoires.
+Le chemin du repertoire et le nom du fichier de sortie sont optionnels. 
+Si le répertoire n'est pas saisi, la racine est prise par défault.
+Le chemin du répertoire doit être le chemin complet.
 
 Exemple de lancement :
     - depuis le repertoire racine :
-    docker run -it --rm -v $PWD:/code registry.tools.edw.lan/edwtf/pyrt3.6:
-    'tag' python -m liste -d <rep>
-    - depuis le repertoire grap_data :
-    docker run -it --rm -v $PWD:/code registry.tools.edw.lan/edwtf/pyrt3.6
-    tag' python app.py -d <rep>
+    py -m scan_disk -d <rep> -o <output> pour Windows
+    python3 -m scan_disk -d <rep> -o <output> pour Linux
+    - depuis le repertoire scan_disk :
+    py scan_disk -d <rep> -o <output> pour Windows
+    python3 scan_disk -d <rep> -o <output> pour Linux
 
-Si le nom du répertoire est omis, le répertoire racine est pris par défault.
-"""
+'''
 parser = argparse.ArgumentParser(
     description=message,
     formatter_class=argparse.RawDescriptionHelpFormatter)
