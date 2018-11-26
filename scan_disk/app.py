@@ -11,7 +11,7 @@ if sys.path[0] != str(project_path):
 import scan_disk as scan_disk
 
 message = '''Application permettant de scanner un répertoire et ses sous-répertoires.
-Le chemin du repertoire et le nom du fichier de sortie sont optionnels. 
+Le chemin du repertoire et le nom du fichier de sortie sont optionnels.
 Si le répertoire n'est pas saisi, la racine est prise par défault.
 Le chemin du répertoire doit être le chemin complet.
 

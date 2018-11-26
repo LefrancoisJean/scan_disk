@@ -1,0 +1,6 @@
+version: 1
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: formatter
+    stream: ext://sys.stdout

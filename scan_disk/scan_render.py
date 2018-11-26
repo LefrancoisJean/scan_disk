@@ -77,17 +77,17 @@ class ScanRender:
                                                  **value)
                 result += tableau_template['footer']
 
-                with open(self.project_path / 'html' / (self.output+'.html'),
-                          'w', encoding="utf-8") as f:
-                    f.write(result)
-        except TypeError as error:
-            error_code = 1003
+            with open(self.project_path / 'html' / (self.output+'.html'),
+                      'w', encoding="utf-8") as f:
+                f.write(result)
+        except AttributeError as error:
+            error_code = 1001
             error_message = error
         except IOError as error:
-            error_code = 1003
+            error_code = 1002
             error_message = error
-        except Exception as error:
-            error_code = 1000
+        except TypeError as error:
+            error_code = 1003
             error_message = error
         finally:
             return error_code, error_message
