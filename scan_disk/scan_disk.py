@@ -47,7 +47,6 @@ class ScanDisk:
             :rtype: ScanDisk
         """
         file_paths = {'logging': project_path / 'config' / 'logging.yml'}
-        print(project_path)
 
         # initialisation des loggings
         utils.setup_logging(file_paths["logging"],
@@ -78,13 +77,13 @@ class ScanDisk:
         self.logger.info('******* Fin d\'initialisation du programme *******')
 
         # Set KO exit reply text
-        self.ko_reply_text = 'Scan_disk a été brusquement interrompu !\n \
-                                           ._//(`O`)\_.'
+        self.ko_reply_text = 'Scan_disk a été brusquement interrompu !\n ._//(`O`)\_.'
 
         # Set OK exit reply text
         self.ok_reply_text = 'Scan_disk a correctement écrit l\'ensemble \
-        des fichiers demandés.\n\
-        A bientôt ...\n!°\--(^_^)--/°!'
+des fichiers demandés.\n\
+        A bientôt ...\n\
+        !°\--(^_^)--/°!'
 
     def read_directory(self, name):
         """
@@ -169,12 +168,12 @@ class ScanDisk:
             result['acces'] = self.format_time(int(stats.st_atime))
             result['modif'] = self.format_time(int(stats.st_mtime))
             result['create'] = self.format_time(int(stats.st_ctime))
-        except FileExistsError as error:
-            self.logger.error(f'Le fichier {name} n\'existe pas' +
+        except OSError as error:
+            self.logger.error(f'Le fichier {name} n\'existe pas. ' +
                               f'L\'erreur {error} a été générée')
             result['error'] = error
         except FileNotFoundError as error:
-            self.logger.error(f'Le fichier {name} n\'a pas été trouvé' +
+            self.logger.error(f'Le fichier {name} n\'a pas été trouvé. ' +
                               f'L\'erreur {error} a été générée')
             result['error'] = error
         return result
@@ -196,7 +195,7 @@ class ScanDisk:
         except TypeError as error:
             self.logger.error(error)
             formatted_date = error
-        except ValueError as error:
+        except OverflowError as error:
             self.logger.error(error)
             formatted_date = error
         except Exception as error:
@@ -244,7 +243,7 @@ class ScanDisk:
                 droit += 'calcul invalide'
         return ftype, droit
 
-    def run(self):
+    def run(self):  # pragma: no cover
         """
             The main function
         """

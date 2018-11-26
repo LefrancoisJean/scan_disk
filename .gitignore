@@ -136,10 +136,10 @@ pip-selfcheck.json
 !.vscode/launch.json
 !.vscode/extensions.json
 
-### Html files ###
+### Others files ###
 *.html
 *.css
 *.js
-
+*.sh
 
 # End of https://www.gitignore.io/api/python,visualstudiocode
